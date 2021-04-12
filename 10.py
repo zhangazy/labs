@@ -1,5 +1,5 @@
 #Imports
-import pygame, sys
+import pygame, sys, random
 from pygame.locals import *
 import random, time
 
@@ -74,11 +74,18 @@ class Player(pygame.sprite.Sprite):
         if self.rect.right < SCREEN_WIDTH:        
               if pressed_keys[K_RIGHT]:
                   self.rect.move_ip(5, 0)
-                  
 
+class Coins(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__() 
+        self.image = pygame.image.load("coin.png")
+        self.surf = pygame.Surface((30, 60))
+        self.rect = self.surf.get_rect(center = (random.randint(40, SCREEN_WIDTH-40), 0))
+          
 #Setting up Sprites        
 P1 = Player()
 E1 = Enemy()
+C1 = Coins()
 
 #Creating Sprites Groups
 enemies = pygame.sprite.Group()
@@ -86,10 +93,18 @@ enemies.add(E1)
 all_sprites = pygame.sprite.Group()
 all_sprites.add(P1)
 all_sprites.add(E1)
+all_sprites.add(C1)
+
 
 #Adding a new User event 
 INC_SPEED = pygame.USEREVENT + 1
 pygame.time.set_timer(INC_SPEED, 1000)
+
+def gloop():
+    points = 0
+    RECTX, RECTY = WINDOWWIDTH/2, 0
+    CARX, CARY = WINDOWWIDTH/2, WINDOWHEIGHT/2+ CARHEIGHT
+    COINX, COINY = random.randrange(0.2 * WINDOWWIDTH, 0.8*WINDOWWIDTH, STEP), 0
 
 #Game Loop
 while True:
@@ -102,11 +117,23 @@ while True:
             pygame.quit()
             sys.exit()
 
-
+    if (check_coin(CARX, CARY, COINX, COINY)):
+        COINX, COINY = random.randrange(0.2 * WINDOWWIDTH, 0.8*WINDOWWIDTH, STEP), 0    
+        points += 1
+    
+    RECTY += STEP 
+    RECTY = RECTY % YDIFF
+    COINY += STEP      
 
     DISPLAYSURF.blit(background, (0,0))
     scores = font_small.render(str(SCORE), True, BLACK)
     DISPLAYSURF.blit(scores, (10,10))
+
+    if COINY >= WINDOWHEIGHT:
+         COINX, COINY = random.randrange(0.2 * WINDOWWIDTH, 0.8*WINDOWWIDTH, STEP), 0
+        
+
+
 
     #Moves and Re-draws all Sprites
     for entity in all_sprites:
@@ -126,9 +153,25 @@ while True:
                 entity.kill() 
           time.sleep(2)
           pygame.quit()
-          sys.exit()        
-        
-    pygame.display.update()
-    FramePerSec.tick(FPS)
+          sys.exit()   
+    
+clock.tick(FPS)
+pygame.display.update()
+FramePerSec.tick(FPS)
+
+def check_coin(CARX, CARY, COINX, COINY):
+        if(CARX - COINX) <= COINSIZE and (COINX - CARX) <= CARWIDTH:
+            if(CARY - COINY) <= COINSIZE and (COINY - CARY) <= CARHEIGHT:
+                return True
+        return False
+def check_step_out(CARX):
+    if (CARX < 0.1*WINDOWWIDTH or CARX >0.8*WINDOWHEIGHT):
+        pygame.quit()
+        sys.exit()
     
 
+
+        
+    
+
+    
